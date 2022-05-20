@@ -74,7 +74,7 @@ func setupPubSubSubscriber(ctx context.Context, wg *sync.WaitGroup, logger *util
 					return
 				}
 
-				if msg.Resource.ResourceType != "cloudsql_database" {
+				if msg.Resource.ResourceType != "cloudsql_database" && msg.Resource.ResourceType != "alloydb.googleapis.com/Instance" {
 					return
 				}
 				if !strings.HasSuffix(msg.LogName, "postgres.log") {

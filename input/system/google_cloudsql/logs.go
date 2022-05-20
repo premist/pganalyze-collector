@@ -92,6 +92,8 @@ func setupPubSubSubscriber(ctx context.Context, wg *sync.WaitGroup, logger *util
 					return
 				}
 
+				t, _ := time.Parse(time.RFC3339Nano, msg.Timestamp)
+
 				gcpLogStream <- LogStreamItem{
 					GcpProjectID:          parts[1],
 					GcpCloudSQLInstanceID: clusterID,

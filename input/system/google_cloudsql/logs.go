@@ -74,23 +74,29 @@ func setupPubSubSubscriber(ctx context.Context, wg *sync.WaitGroup, logger *util
 					return
 				}
 
-				if msg.Resource.ResourceType != "cloudsql_database" {
+				if msg.Resource.ResourceType != "cloudsql_database" && msg.Resource.ResourceType != "alloydb.googleapis.com/Instance" {
 					return
 				}
 				if !strings.HasSuffix(msg.LogName, "postgres.log") {
 					return
 				}
-				databaseID, ok := msg.Resource.Labels["database_id"]
-				if !ok || strings.Count(databaseID, ":") != 1 {
+
+				resourceContainer, ok := msg.Resource.Labels["resource_container"]
+				if !ok || strings.Count(resourceContainer, "/") != 1 {
+					return
+				}
+				parts := strings.SplitN(resourceContainer, "/", 2) // projects/project_id
+
+				clusterID, ok := msg.Resource.Labels["cluster_id"]
+				if !ok {
 					return
 				}
 
-				parts := strings.SplitN(databaseID, ":", 2) // project_id:instance_id
 				t, _ := time.Parse(time.RFC3339Nano, msg.Timestamp)
 
 				gcpLogStream <- LogStreamItem{
-					GcpProjectID:          parts[0],
-					GcpCloudSQLInstanceID: parts[1],
+					GcpProjectID:          parts[1],
+					GcpCloudSQLInstanceID: clusterID,
 					Content:               msg.TextPayload,
 					OccurredAt:            t,
 				}
